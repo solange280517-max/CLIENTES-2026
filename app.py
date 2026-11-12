@@ -162,4 +162,8 @@ FALLOS = {}
 @app.before_request
 def guard():
     if request.endpoint in (None, 'static'): return
-    if request.method == 'POST' and not secrets.compare_digest(request.form.get('_csrf', ''), session.get('csrf',
+    if request.method == 'POST' and not secrets.compare_digest(request.form.get('_csrf', ''), session.get('csrf', '-')):
+        abort(400)
+    if request.endpoint in ('login', 'setup', 'logo'): return
+    if get_db().execute('SELECT COUNT(*) FROM usuarios').fetchone()['count'] == 0: return redirect(url_for('setup'))
+    if not session.get('uid'): return redirect(url_for('login'))
